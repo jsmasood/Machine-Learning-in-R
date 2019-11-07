@@ -1,0 +1,569 @@
+---
+title: "ANLY512 Take Home Final"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+####**Problem 1**
+
+
+
+```{r cars}
+
+library(readr)
+library(ggplot2)
+day <- read_csv("cabi.csv")
+day$X1 <- NULL
+
+# a
+
+ggplot(day, aes(x = as.factor(year), y = casual)) + geom_boxplot() + 
+  labs(title="Boxplot of Causal Riders", 
+           subtitle="Variation by Year",
+           x = "Year",
+           y = "Number of Riders") + scale_x_discrete(labels=c("2011", "2012"))
+
+ggplot(day, aes(x = as.factor(year), y = registered)) + geom_boxplot() + 
+  labs(title="Boxplot of Registered Riders", 
+           subtitle="Variation by Year",
+           x = "Year",
+           y = "Number of Riders") + scale_x_discrete(labels=c("2011", "2012"))
+
+
+ggplot(day, aes(x = as.factor(month), y = casual)) + geom_boxplot() + 
+  labs(title="Casual Riders", 
+           subtitle="Variation by Month",
+           x = "Month",
+           y = "Number of Riders") +
+  scale_x_discrete(labels=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct",
+                            "Nov", "Dec"))
+
+ggplot(day, aes(x = as.factor(month), y = registered)) + geom_boxplot() + 
+  labs(title="Registered Riders", 
+           subtitle="Variation by Month",
+           x = "Month",
+           y = "Number of Riders") +
+  scale_x_discrete(labels=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct",
+                            "Nov", "Dec"))
+
+
+ggplot(day, aes(x = (hr + 1), y = casual)) + geom_bar(stat = "identity") + 
+  labs(title="Casual Riders", 
+           subtitle="Variation by Hour of Day",
+           x = "Hour",
+           y = "Number of Riders") +
+  scale_x_continuous(limits=c(1, 24)) +
+  scale_y_continuous(limits=c(0, 300000))
+
+ggplot(day, aes(x = (hr + 1), y = registered)) + geom_bar(stat = "identity") + 
+  labs(title="Registered Riders", 
+           subtitle="Variation by Hour of Day",
+           x = "Hour",
+           y = "Number of Riders") +
+  scale_x_continuous(limits=c(1, 24)) +
+  scale_y_continuous(limits=c(0, 300000))
+
+# b
+
+ggplot(day, aes(x = casual, y = registered)) + geom_jitter(aes(colour = as.factor(year))) +
+  geom_smooth(aes(colour = as.factor(year))) + scale_color_manual(labels = c("2011", "2012"), values = c("blue", "red")) + scale_x_continuous(limits = c(0,1000)) + scale_y_continuous(limits = c(0,1000))
+
+ggplot(day, aes(x = casual, y = registered)) + geom_jitter(aes(colour = as.factor(wday))) +
+  geom_smooth(aes(colour = as.factor(wday))) + scale_color_manual(labels = c("Not a working day", "Working Day"), values = c("blue", "red")) + scale_x_continuous(limits = c(0,1000)) + scale_y_continuous(limits = c(0,1000))
+
+
+# c
+
+ggplot(day, aes(x = as.factor(weather), y = casual)) + geom_bar(stat = "identity") +
+  labs(title="Casual Riders", 
+           subtitle="Variation by Weather",
+           x = "Weather Type",
+           y = "Number of Riders") +
+  scale_x_discrete(labels=c("Clear", "Cloudy/Fog", "Rain/Snow/Thunder"))
+
+
+ggplot(day, aes(x = as.factor(weather), y = registered)) + geom_bar(stat = "identity") +
+  labs(title="Registered Riders", 
+           subtitle="Variation by Weather",
+           x = "Weather Type",
+           y = "Number of Riders") +
+  scale_x_discrete(labels=c("Clear", "Cloudy/Fog", "Rain/Snow/Thunder"))
+
+
+# d
+
+ggplot(day, aes(x = (hr + 1), y = casual, fill = as.factor(weather))) + 
+  geom_bar(stat = "identity") + scale_fill_manual(labels = c("Clear", "Cloudy/Fog", "Rain/Snow/Thunder"), values = c("#42a7f4", "red", "green")) + labs(title="Casual Riders", 
+           subtitle="Variation by Time of Day and Weather Type",
+           x = "Hour of Day",
+           y = "Number of Riders")
+
+ggplot(day, aes(x = (hr + 1), y = registered, fill = as.factor(weather))) + geom_bar(stat = "identity") +  scale_fill_manual(labels = c("Clear", "Cloudy/Fog", "Rain/Snow/Thunder"), values = c("#42a7f4", "red", "green"))  + labs(title="Registered Riders", 
+           subtitle="Variation by Time of Day and Weather Type",
+           x = "Hour of Day",
+           y = "Number of Riders")
+
+ggplot(day, aes(x = as.factor(month), y = casual, fill = as.factor(weather))) + 
+  geom_bar(stat = "identity") + scale_fill_manual(labels = c("Clear", "Cloudy/Fog", "Rain/Snow/Thunder"), values = c("#42a7f4", "red", "green")) + labs(title="Casual Riders", 
+           subtitle="Variation by Time of Day and Weather Type",
+           x = "Month",
+           y = "Number of Riders")
+
+ggplot(day, aes(as.factor(month), y = registered, fill = as.factor(weather))) + geom_bar(stat = "identity") + scale_fill_manual(labels = c("Clear", "Cloudy/Fog", "Rain/Snow/Thunder"), values = c("#42a7f4", "red", "green")) + labs(title="Registered Riders", 
+           subtitle="Variation by Time of Day and Weather Type",
+           x = "Month",
+           y = "Number of Riders")
+
+
+```
+
+(a). By comparing the boxplots we can see the number of casual riders (e.g. tourists) inreased from 2011 to 2012 although the median value for both years was not hugely different. However 2012 had more outlier days with a high number of riders. 
+
+The number of registered riders increased more significantly, implying that more people began to use the Capital Bikeshare service to commute around the city in place of public transport/private vehicles.
+
+For both casual and registered riders there are a greater number of rides during the summer months, which makes sense as it is more comfortable to bike around in the city as compared to winter. The number of registered users is higher in winter as compared to casual riders, though this might just be because fewer tourists come to DC in the cold.
+
+Finally we see that registered riders usually peak around office commuting hours (e.g. before 9am and after 5pm) which shows that a lot of these users are going to and from work. On the other hand for casual riders the peak is around late afternoon/evening when most tourists would be sightseeing etc.
+
+(b). There seems to be a positive relationship between registered users and casual users, implying that other factors, such as weather seem to affect both similarly. On a clear ay more riders will be using the service, both casual and registered. The effect does not vary as much year, as both curves follow a similar trajectory.
+
+However the effect does vary by working day.In case of a working day we see there tend to be more registered users, which shows that these people need to get to work whereas for casual users the increase is much gentler implying lesser urgency.
+
+(c). There is a strong relationship between the weather situation and ridership counts. Biking seems to be an activity strongly associated with the weather conditions as many individuals choose not to bike when it is rainy or snowing. This holds true for both casual and registered riders. There is a steep drop in ridership from clear to cloudy, and there are hardly any riders during the snow/rain.
+
+(d). We notice that ridership is almost zero if the weather is snowy/raining in the morning or late at night, for both casual and registered readers. However there are a few riders during the middle of the day, although it is larger for registered riders.
+
+There is a slightly larger number of riders in the summer months for rainy/snowy weather as compared to the winter.
+
+
+####**Problem 2**
+
+
+
+```{r}
+
+train1 <- sample(nrow(day),(nrow(day) * .70), replace = FALSE)
+day_train <- day[train1,]
+day_test <- day[-train1,]
+
+
+# a
+
+mlr_reg <- lm(registered ~ factor(season) + year + month + wday + hr + temp + atemp + hum + windspeed +
+                factor(weather), data = day_train)
+summary(mlr_reg)
+
+# b
+
+predicted_reg <- predict(mlr_reg, day_test, interval = "confidence")
+mean((predicted_reg - day_test$registered)^2)
+
+# c
+
+mean(mlr_reg$residuals^2)
+mlr_reg3 <- lm(registered ~ factor(season) + year + factor(month) + wday + hr + temp + atemp + hum + windspeed + factor(weather), data = day_train)
+summary(mlr_reg3)
+
+# d
+
+day_train2 <- day_train
+day_test2 <- day_test
+
+day_train2$hr <-  as.factor(day_train2$hr)
+day_test2$hr <- as.factor(day_test2$hr)
+
+mlr_reg2 <- lm(registered ~ factor(season) + year + month + wday + factor(hr) + temp + atemp + hum + windspeed + factor(weather), data = day_train)
+summary(mlr_reg2)
+
+predicted_reg2 <- predict(mlr_reg2, day_test, interval = "confidence")
+mean((predicted_reg2 - day_test$registered)^2)
+
+```
+
+(a). From our regression output we see that the variables season (for categories 2 and 4), year, wday, hr, tmemp and hum are highly significant (p-value much lower than 0.001). Both categories for the weather variable are also significant at the 1% level along with windspeed . The atemp variable is significant at the 5% level.
+
+This significance level implies that all of these variables have a beta coefficient which is significantly different from zero and we can interpret the effect of these coefficients. For example, the "1.370e+02" coefficient on the temp variable implies that a 1 unit increase in temperature is associated with an increase of 137 registered riders per hour holding all other variables constant. 
+
+We see that the the number of registered riders increases on a working day, if the year is 2012, if the temperature and windspeed increase. Similarly there is a negative relationship between registered riders and inreasing humidity, and if the weather is rainy or snowing.
+
+These results make sense as registered riders are often those that use the bikes to commute to and from work, but might look at alternatives in case of adverse weather.
+
+(b). The RMSE value is 15032.7.
+
+(c). 
+
+(d). We see that Adj R squared value almost doubles if we include the hour variable as a factor instead of as a numeric. Howevere the test RMSE value also falls to 7448.248, which indicates the improvement is not just for the training data but also the test data.
+
+This is because incluing the hr variable as numeric implies that there is an increasing relationship within our variable with hr 23 being greater than hr 22, which is not accurate. For time periods although one might occur later, there is no independant magnitude which would be greater for one category or another. This is why we should include the hr variable as factor.
+
+
+####**Problem 3**
+
+
+```{r}
+
+library(pROC)
+library(nnet)
+
+nnet_MSE <- vector()
+
+for(i in 1:10){
+  reg_nnet1 <- nnet(registered/1000 ~ temp + atemp + hum + windspeed + factor(weather), data = day_train, size = (2*i), maxit = 1000, decay = 0.1)
+
+  predict1_reg <- predict(reg_nnet1, day_test, type = "raw") * 1000
+  nnet_MSE[i] <- mean((predict1_reg - day_test$registered)^2)
+  
+}
+
+nnet_MSE
+
+nnet_MSE2 <- vector()
+
+for(i in 1:10){
+  reg_nnet2 <- nnet(registered/1000 ~ factor(season) + year + factor(month) + wday + factor(hr), data = day_train, size = (2*i), maxit = 1000, decay = 0.1)
+
+  predict2_reg <- predict(reg_nnet2, day_test, type ="raw") * 1000
+  nnet_MSE2[i] <- mean((predict2_reg - day_test$registered)^2)
+  
+}
+
+nnet_MSE2
+
+
+nnet_MSE3 <- vector()
+
+for(i in 1:10){
+  reg_nnet3 <- nnet(registered/1000 ~ year + wday + factor(weather) + atemp , data = day_train, size = (2*i), maxit = 1000, decay = 0.1)
+
+  predict3_reg <- predict(reg_nnet3, day_test, type ="raw") * 1000
+  nnet_MSE3[i] <- mean((predict3_reg - day_test$registered)^2)
+  
+}
+
+nnet_MSE3
+
+```
+
+I scale my variables as otherwise test output remains constant. I do this by dividing by registered users by 1000 to get it in the 0-1 range and then multiply my predicted values by 1000 later.
+
+For the final neural network I chose the variables working day and year for the time variables, and atemp and weather for the temp variables. From previous questions we have seen these play an important role in predicted the total number of registered users at any given time.
+
+Comparing out three models we see that the smallest MSE is for the model which used only time variables and the largest is for the model with mixed variables (the one I chose). This seems to imply that registered users are more versatile when it comes to changes in weather on a daily basis but plan their commute across the year so as to avoid biking in the winter.
+
+####**Problem 4**
+
+```{r}
+
+library(leaps)
+
+regfit.fwd <- regsubsets (registered ~ . - casual, data=day ,nvmax=10, method ="forward")
+reg_fwd_sum <- summary(regfit.fwd)
+reg_fwd_sum
+
+regfit.bwd <- regsubsets (registered ~ . - casual , data=day ,nvmax=10, method ="backward")
+reg_bwd_sum <- summary(regfit.bwd)
+reg_bwd_sum
+
+plot(reg_fwd_sum$rss ,xlab="Number of Variables with Forward Selection",ylab="RSS", type="l")
+plot(reg_fwd_sum$adjr2 ,xlab="Number of Variables with Forward Selection", ylab="Adjusted RSq",type="l")
+
+plot(reg_bwd_sum$rss ,xlab="Number of Variables with Backward Selection",ylab="RSS", type="l")
+plot(reg_bwd_sum$adjr2 ,xlab="Number of Variables with Backward Selection", ylab="Adjusted RSq",type="l")
+
+```
+
+From our plots we see that the best model is for 6 variables with both forward and backward subset selection. The 6 variables in this model are the same for both models and include - season, year, wday, hr, atemp and hum.
+
+####**Problem 5**
+
+```{r}
+
+# a
+
+library(readr)
+
+covtype_train <- read_csv("covtype_train.csv")
+covtype_test <- read_csv("covtype_test.csv")
+
+covtype_train$X1 <- NULL
+covtype_test$X1 <- NULL
+
+covtype_train$cover[covtype_train$cover == 2] <- 0
+covtype_train$cover[covtype_train$cover == 3] <- 1
+
+covtype_test$cover[covtype_test$cover == 2] <- 0
+covtype_test$cover[covtype_test$cover == 3] <- 1
+
+glm_cover <- glm(as.factor(cover) ~ ., data = covtype_train, family = "binomial")
+summary(glm_cover)
+
+cover_pred_train <- predict(glm_cover, covtype_train, type = "response")>0.5
+table(actual = covtype_train$cover, predicted_train = cover_pred_train)
+
+cover_pred_test <- predict(glm_cover, covtype_test, type = "response")>0.5
+table(actual = covtype_test$cover, predicted_test = cover_pred_test)
+
+# Using subset of significant predictors
+
+glm_cover2 <- glm(as.factor(cover) ~ elev + h_dist_hydro + h_dist_road + hillshade_12 + hillshade_3 +
+                    wild2 + soil26 + soil29, data = covtype_train, family = "binomial")
+summary(glm_cover2)
+
+cover_pred_train2 <- predict(glm_cover2, covtype_train, type = "response")>0.13
+table(actual = covtype_train$cover, predicted_train = cover_pred_train2)
+
+cover_pred_test2 <- predict(glm_cover2, covtype_test, type = "response")>0.13
+table(actual = covtype_test$cover, predicted_test = cover_pred_test2)
+
+```
+
+I chose a threshold level of 0.13 and ran the logistic regression again on a subset of the significant predictods. This gives approximately the same sensitivity (6.55%) and specificity (6.22%) on the training data.
+
+On the test data this same threshold gives us a sensitivity value of 5.97% and a specificity value of 6.86%.
+
+####**Problem 6**
+
+
+```{r}
+
+library(e1071)
+
+# Downsample to decrease SVM computation amount
+
+# downsamp <- seq(1, ncol(covtype_train), 4)
+# covtype_train2 <- covtype_train[ downsamp]
+# # covtype_train2$train.y <- mnist_train$train.y
+# covtype_test2 <- covtype_test[ downsamp]
+# # mnist_test2$test.y <- covtype_test$test.y
+
+covtype_train2 <- covtype_train
+covtype_test2 <- covtype_test
+
+# Drop soil variables to make computation easier
+
+covtype_train2 <- covtype_train[ -c(15:54) ]
+covtype_test2 <- covtype_test2[ -c(15:54) ]
+
+# Run SVM
+
+which(apply(covtype_train2, 2, var) == 0)
+which(apply(covtype_test2, 2, var) == 0)
+
+covtype_train = subset(covtype_train, select = -c(soil15,soil35,soil37) )
+covtype_test = subset(covtype_test, select = -c(soil15,soil35,soil37))
+
+# covtype_train2$cover <- covtype_train$cover
+# covtype_train2$cover <- covtype_train$cover
+
+tune_cover_radial <- tune.svm(as.factor(cover) ~ ., data = covtype_train2, kernel = "radial", gamma = c(1, 0.1, 0.01, 0.001), cost = c(1, 0.1, 0.01))
+
+summary(tune_cover_radial)
+
+cover_radial_fit <- svm(as.factor(cover) ~ ., data = covtype_train, kernel = "radial", gamma = 0.1, cost=1)
+
+# Training Error
+
+table(true = covtype_train$cover, predicted = cover_radial_fit$fitted)
+
+# Test Error
+
+pred_cover_radial_fit <- predict(cover_radial_fit , covtype_test)
+
+table(true=covtype_train$cover, predicted = pred_cover_radial_fit)
+
+```
+
+My computer was unable to run the SVM model for the whole dataset so I dropped the soil variables as they seem to have relatively little predictive power from our logistic regression in part 5. I completed the tuning process and then ran the best SVM with the full dataset.
+
+The misclassification rate is 1.65% for the training data, but the test data misclassification rate is 20.1%. This indicates our SVM is overfitting the data and does not perform well on untrained data.
+
+####**Problem 7**
+
+
+```{r}
+
+library(tree)
+
+# attach(covtype_test)
+# Cover <- ifelse(Purchase == "MM",1,0)
+
+tree.cover <- tree(as.factor(cover) ~ ., data = covtype_train)
+summary(tree.cover)
+
+plot(tree.cover)
+text(tree.cover ,pretty =0)
+
+tree.cover.pred <- predict(tree.cover, covtype_test, type="class")
+table(actual = covtype_test$cover, predicted = tree.cover.pred)
+
+# CV and Pruning
+
+set.seed (3)
+cv.tree.cover <- cv.tree(tree.cover ,FUN=prune.misclass )
+cv.tree.cover
+
+
+prune.tree.cover <- prune.misclass(tree.cover, best=8)
+plot(prune.tree.cover)
+text(prune.tree.cover, pretty=0)
+
+tree.cover.pred2 <- predict(prune.tree.cover, covtype_test, type="class")
+table(actual = covtype_test$cover, predicted = tree.cover.pred2)
+
+```
+
+Classification error rate for pruned tree = (104 + 191 / 10000) = 2.95%
+
+####**Problem 8**
+
+
+```{r}
+
+library(randomForest)
+
+randForest.cover <- randomForest(as.factor(cover) ~ . , data = covtype_train, mtry= 7 , ntree=20)
+randForest.cover
+importance(randForest.cover)
+
+yhat.randC = predict(randForest.cover ,newdata = covtype_test)
+table(actual = covtype_test$cover, predicted = yhat.randC)
+
+# Important 10 variable model
+
+randForest.cover2 <- randomForest(as.factor(cover) ~ elev + aspect + slope + h_dist_hydro + v_dist_hydro + h_dist_road + hillshade_9 + hillshade_12 + hillshade_3 + h_dist_fire , data = covtype_train, mtry= 3 , ntree=20)
+randForest.cover2
+
+yhat.randC2 = predict(randForest.cover2 ,newdata = covtype_test)
+table(actual = covtype_test$cover, predicted = yhat.randC2)
+
+```
+
+Note: For a random forest classification problem we use mtry = sqrt(p).
+
+From our test data we see that the misclassification rate is 2.95% for random forest with 10 most important variables and 2.85% for the full model random forest, implying that the latter performs better even on untrained data.
+
+####**Problem 9**
+
+```{r}
+
+library(dplyr)
+
+load("mnist_all.RData")
+
+df_test <- as.data.frame(test$x)
+df_test$Digit <- test$y
+
+set.seed(2)
+Q9_sample <- sample(1:nrow(df_test), 1000)
+
+df_test_q9 <- df_test[Q9_sample,]
+
+hc.complete <- hclust(dist(df_test_q9), method="complete")
+plot(hc.complete, main="Complete Linkage" , xlab="", sub="",cex =.9)
+
+df_test_q9$ten_clus <- cutree(hc.complete, 10)
+df_test_q9$ten_clus2 <- cutree(hc.complete, 5)
+df_test_q9$ten_clus3 <- cutree(hc.complete, 15)
+
+# Cross Tab Digit and Cluster Values
+
+table(Digit = df_test_q9$Digit, Cluster = df_test_q9$ten_clus)
+table(Digit = df_test_q9$Digit, Cluster = df_test_q9$ten_clus2)
+table(Digit = df_test_q9$Digit, Cluster = df_test_q9$ten_clus3)
+
+# Split dataset by cluster
+
+# split(df_test_q9, df_test_q9$ten_clus)
+
+# Calculate mean value for each column by cluster
+
+cluster_means <- matrix(nrow = 10, ncol = 788)
+
+cluster_means <- df_test_q9 %>% 
+    group_by(ten_clus) %>%
+    summarise_all("mean")
+
+cluster_means <- as.data.frame(cluster_means)
+
+# Create function to plot digits
+
+plot_digit <- function(j){
+  arr784 <- as.numeric(cluster_means[j,1:784])
+  col=gray(12:1/12)
+  image(matrix(arr784, nrow=28)[,28:1], col=col, 
+        main = paste("this is from cluster ",cluster_means$labels[j]))
+}
+
+for(i in 1:10){
+  plot_digit(i)
+}
+
+
+```
+
+(b). We can cut the dendogram at the a height of around 3500 and then we would have approximately 10 clusters, which is what we know our data has. However if we look at the leaves we see that these numbers of these seem to be overlapping and they do not seem to be seperated correctly if we were to add a cut at height = 3500. In this case even if we have ten clusters there will be a large number of misclassifications. For this reason I feel that the dendogram does not have compelling evidence about the correct number of "clusters".
+
+(c).I used a cross-tabulation to see the most common digit for each cluster and see which digits tend to clump together. Using a hierarchical clustering of k = 10, we can see some clusters contain only one digit (such as digits 0 and 6), but no digit is perfectly seperated into its own cluster.
+Varying the level of k still leads to imperfect clustering, with cluster 1 conating the most variation in terms of digits.
+
+I choose to use 10 clusters and then split the data by each cluster. After this I calculate the mean of each variable by the cluster to see what the average value of that pixel is for the cluster before plotting it.
+
+
+####**Problem 10**
+
+```{r}
+
+library(ggfortify)
+
+which(apply(df_test, 2, var) == 0)
+
+df_test <- df_test[ - as.numeric(which(apply(df_test, 2, var) == 0))]
+
+# a
+
+
+pr.mnist <- prcomp(df_test, scale=TRUE)
+
+pr.var <- pr.mnist$sdev ^2
+
+pve <- pr.var/sum(pr.var)
+pve
+
+plot(pve, xlab="Principal Component", ylab="Proportion of Variance Explained ", ylim=c(0,1),type='b')
+
+sum(pve[1:2])
+
+sum(pve[1:10])
+
+# b
+
+df_test$colour <- as.factor(df_test$Digit)
+
+autoplot(pr.mnist, data = df_test , colour = 'colour') + scale_color_manual(labels = c("0", "1", "2", "3","4", "5", "6", "7", "8", "9"), values = c("blue", "red", "yellow", "pink", "orange", "gray", "black", "green", "purple", "white" ))
+
+# c
+
+df_10c <- as.data.frame(pr.mnist$x[,1:2])
+df_10c$Digit <- as.factor(df_test$Digit)
+
+df_10c <- subset(df_10c, Digit == 1 | Digit == 2 | Digit == 4)
+
+ggplot(data = df_10c, aes(PC1,PC2, colour = Digit)) + geom_point()
+
+# d
+
+df_10d <- as.data.frame(pr.mnist$x[,1:2])
+df_10d$Digit <- as.factor(df_test$Digit)
+
+df_10d <- subset(df_10d, Digit == 5 | Digit == 3 | Digit == 6)
+
+ggplot(data = df_10d, aes(PC1,PC2, colour = Digit)) + geom_point()
+
+```
+
+(a). The first 2 Principle Components explain 10.5% of the total variation, whereas the first 10 Principle Components explain 30.0% of the variation in the data.
+
+
