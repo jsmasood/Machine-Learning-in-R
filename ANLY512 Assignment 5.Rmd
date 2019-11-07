@@ -1,0 +1,345 @@
+---
+title: "ANLY512 Assignment 5"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+####**6.8.1**
+<br>
+
+Ans 1 (a). We would expect the best subset model with k predictors to have the lowest training MSE as this would most closely follow the observsations of the training data (and likely overfit).
+
+(b). We would expect the best subset model to have the lowest test MSE as it can check all comibation of predictors whereas the other two methods check fewer models and hence might miss out on the optimal one. However if the number of predictors p is large, best subset becomes computationally infeasible.
+
+(c)(i). True as the (k+1) variables model will have the same variables as the (k) variables model but with one more variable added.
+
+(ii). True as the (k) variables model will have the same variables as the (k+1) variables model but with one more variable removed.
+
+(iii). False. For forward stepwise a new "best" variable is always added that improves the model, but this might be different going backwards.
+
+(iv). False
+
+(v). True. Best subset tests all possible models.
+
+
+####**6.8.8**
+<br>
+
+```{r Q8}
+
+library(leaps)
+
+df_q8 <- data.frame("x" = seq(1:100))
+
+df_q8$x <- rnorm(100, 0, 10)
+error <- rnorm(100,0,1)
+
+df_q8$x_2 <- df_q8$x^2
+df_q8$x_3 <- df_q8$x^3
+df_q8$x_4 <- df_q8$x^4
+df_q8$x_5 <- df_q8$x^5
+df_q8$x_6 <- df_q8$x^6
+df_q8$x_7 <- df_q8$x^7
+df_q8$x_8 <- df_q8$x^8
+df_q8$x_9 <- df_q8$x^9
+df_q8$x_10 <- df_q8$x^10
+
+beta0 <- 10
+beta1 <- 5
+beta2 <- 3
+beta3 <- 2
+
+df_q8$y <- beta0 + (beta1)*(df_q8$x) + (beta2)*(df_q8$x_2) + (beta3)*(df_q8$x_3) + error
+
+q8_bestsub = regsubsets(y~.,df_q8, nvmax = 10)
+q8_bestsub_summary<- summary(q8_bestsub)
+q8_bestsub_summary
+
+par(mfrow=c(2,2))
+plot(q8_bestsub_summary$rss ,xlab="Number of Variables ",ylab="RSS", type="l")
+plot(q8_bestsub_summary$adjr2 ,xlab="Number of Variables ", ylab="Adjusted RSq",type="l")
+plot(q8_bestsub_summary$bic ,xlab="Number of Variables ", ylab="BIC",type="l")
+
+
+```
+
+For best subset selection the best model according to each parameter:
+
+Adj Rsq = 2 variables, BIC = 3 variables, RSS = 2 variables
+
+```{r Q8d}
+
+q8.fwd <- regsubsets (y~., df_q8, method ="forward", nvmax = 10)
+q8_fwd_sum <- summary(q8.fwd)
+
+par(mfrow=c(2,2))
+
+plot(q8_fwd_sum$rss ,xlab="Number of Variables ",ylab="RSS", type="l", main = "Forward Selection")
+plot(q8_fwd_sum$adjr2 ,xlab="Number of Variables ",ylab="Adjusted Rsq", type="l", main = "Forward Selection")
+plot(q8_fwd_sum$bic ,xlab="Number of Variables ",ylab="BIC", type="l", main = "Forward Selection")
+
+q8.bwd <- regsubsets (y~., df_q8, method ="backward", nvmax = 10)
+q8_bwd_sum <- summary(q8.bwd)
+
+par(mfrow=c(2,2))
+
+plot(q8_bwd_sum$rss ,xlab="Number of Variables ",ylab="RSS", type="l", main = "Backward Selection")
+plot(q8_bwd_sum$adjr2 ,xlab="Number of Variables ",ylab="Adjusted Rsq", type="l", main = "Backward Selection")
+plot(q8_bwd_sum$bic ,xlab="Number of Variables ",ylab="BIC", type="l", main = "Backward Selection")
+
+
+```
+
+
+####**6.8.10**
+<br>
+
+
+```{r Q10}
+
+df_q10 <- data.frame("x" = seq(1:1000))
+
+df_q10$x1 <- rnorm(1000, 0, 200)
+df_q10$x2 <- rnorm(1000, 0, 25)
+df_q10$x3 <- rnorm(1000, 0, 20)
+df_q10$x4 <- rnorm(1000, 0, 15)
+df_q10$x5 <- rnorm(1000, 0, 20)
+df_q10$x6 <- rnorm(1000, 0, 22)
+df_q10$x7 <- rnorm(1000, 0, 21)
+df_q10$x8 <- rnorm(1000, 0, 19)
+df_q10$x9 <- rnorm(1000, 0, 180)
+df_q10$x10 <- rnorm(1000, 0, 200)
+df_q10$x11 <- rnorm(1000, 0, 20)
+df_q10$x12 <- rnorm(1000, 0, 250)
+df_q10$x13 <- rnorm(1000, 0, 200)
+df_q10$x14 <- rnorm(1000, 0, 15)
+df_q10$x15 <- rnorm(1000, 0, 200)
+df_q10$x16 <- rnorm(1000, 0, 22)
+df_q10$x17 <- rnorm(1000, 0, 21)
+df_q10$x18 <- rnorm(1000, 0, 190)
+df_q10$x19 <- rnorm(1000, 0, 18)
+df_q10$x20 <- rnorm(1000, 0, 20)
+
+beta_0 = 10
+beta_1 <- 7
+beta_2 <- 0
+beta_3 <- 50
+beta_4 <- -4
+beta_5 <- 0
+beta_6 <- 5
+beta_7 <- 0
+beta_8 <- -100
+beta_9 <- 6
+beta_10 <- 2
+beta_11 <- 20
+beta_12 <- 30
+beta_13 <- -40
+beta_14 <- -5
+beta_15 <- 0
+beta_16 <- -7
+beta_17 <- 0
+beta_18 <- 0
+beta_19 <- 0
+beta_20 <- 5
+
+error2 <- rnorm(1000,0,300)
+
+df_q10$y <- beta_0 + (beta_1)*(df_q10$x) + (beta_2)*(df_q10$x2) + (beta_3)*(df_q10$x3) + 
+  (beta_4)*(df_q10$x4) + (beta_5)*(df_q10$x5) + (beta_6)*(df_q10$x6) + (beta_7)*(df_q10$x7) +
+  (beta_8)*(df_q10$x8) + (beta_9)*(df_q10$x9) + (beta_10)*(df_q10$x10) +  (beta_11)*(df_q10$x11) +
+  (beta_12)*(df_q10$x12) + (beta_13)*(df_q10$x13) + (beta_13)*(df_q10$x13) +  (beta_13)*(df_q10$x13) +
+  (beta_14)*(df_q10$x14) + (beta_15)*(df_q10$x15) + (beta_16)*(df_q10$x16) +  (beta_17)*(df_q10$x17) +
+  (beta_18)*(df_q10$x18) + (beta_19)*(df_q10$x19) + (beta_20)*(df_q10$x20) +  error2
+
+df_q10$x <- NULL
+
+# 10% of the sample size
+smp_size <- floor(0.10 * nrow(df_q10))
+
+set.seed(123)
+train_ind <- sample(seq_len(nrow(df_q10)), size = smp_size)
+
+train_q10 <- df_q10[train_ind, ]
+test_q10 <- df_q10[-train_ind, ]
+
+
+# Best subsset selection - Training
+
+q10_best_train = regsubsets(y~.,train_q10, nvmax = 20)
+q10_best_train_summary<- summary(q10_best_train)
+q10_best_train_summary
+
+# plot(q10_best_train_summary$rss ,xlab="Number of Variables ",ylab="RSS", type="l")
+# 
+# # Best subsset selection - Test
+# 
+# q10_best_test = regsubsets(y~.,test_q10, nvmax = 20)
+# q10_best_test_summary<- summary(q10_best_test)
+# q10_best_test_summary
+# 
+# plot(q10_best_test_summary$rss ,xlab="Number of Variables ",ylab="RSS", type="l")
+
+test.mat=model.matrix(y~.,data=test_q10)
+
+val.errors=rep(NA,20)
+num.var=rep(NA,20)
+
+for(i in 1:20){
+  
+  coefi <- coef(q10_best_train,id=i)
+  pred <- test.mat[,names(coefi)]%*%coefi
+  val.errors[i] <- mean((test_q10$y-pred)^2)
+  num.var[i] <- i
+}
+
+val.errors
+
+which.min(val.errors)
+
+coef(q10_best_train ,8)
+
+plot(num.var, val.errors, type = "l", xlab="Number of Variables ", ylab="MSE")
+
+
+
+
+```
+
+(e). The MSE is lowest for the 8 variable model. These are the variables with large non-zero coefficients and great variation in the X values.
+
+(f). The 8 variable model includes the following variables in addition to the inctercept: X3, X8, X9, X10, X11, X12, X13 and X16. Most of the betas are pretty close to the true model except for X13 and X16 which are almost double/triple the size.
+
+
+####**Extra 43**
+<br>
+
+(a). There are 3 predictors, as well as 3 quadratic terms for each predictor, giving us a total of 6. We also have 4 interaction terms, which brings out total to 10.
+
+(b). The models which satisfy the hierarchical model are those with the 3 base predictors and all the combinations with 2 base predictors and 1 quadratic term. For the interaction terms we can include all the models with 2 base predictors and 1 interaction term.
+
+(c). We can design an algorithm in such a way that the forward selection method does not add in a new variable unless its "base" variables are already part of the selected predictors. Thus for a quadratic term, the linear term must already be in the model. Similarly for an interaction term, both base terms must be already selected otherwise the selection method would disregard this term.
+
+
+####**Extra 44**
+<br>
+
+```{r Extra44}
+
+library(readxl)
+library(leaps)
+library(nnet)
+url <- "http://archive.ics.uci.edu/ml/machine-learning-databases/concrete/compressive/Concrete_Data.xls"
+destfile <- "Concrete_Data.xls"
+curl::curl_download(url, destfile)
+Concrete_Data <- read_excel(destfile)
+
+names(Concrete_Data) <- c("cement","slag","fly_ash","water","superp","coa_agg","fin_agg","age","strength")
+
+concrete.fwd <- regsubsets (strength~.,data=Concrete_Data, method ="forward")
+con_fwd_sum <- summary(concrete.fwd)
+
+concrete.bwd <- regsubsets (strength~.,data=Concrete_Data, method ="backward")
+con_bwd_sum <- summary(concrete.bwd)
+
+par(mfrow=c(2,2))
+
+plot(con_fwd_sum$bic ,xlab="Number of Variables ",ylab="BIC", type="l", main = "Forward Selection")
+plot(con_fwd_sum$bic ,xlab="Number of Variables ",ylab="BIC", type="l",  main = "Backward Selection")
+
+
+```
+
+Both models recommend an ideal of 6 predictors, which are the same as both graphs have the same shape.
+
+####**Extra 46**
+<br> 
+
+```{r Extra46a}
+
+library(dplyr)
+library(pROC)
+
+load("mnist_all.RData")
+
+df_train <- as.data.frame(train$x)
+df_train$Digit <- train$y
+
+df_test <- as.data.frame(test$x)
+df_test$Digit <- test$y
+
+df_train <- filter(df_train, (Digit == 1 | Digit == 3))
+df_test <- filter(df_test, (Digit == 1 | Digit == 3))
+
+trainx_colmean <- apply(df_train, 2, mean)
+trainx_colsd <- apply(df_train, 2, sd)
+
+# Remove columnns with zero variance
+df_train <- df_train[- as.numeric(which(apply(df_train, 2, var) == 0))]
+df_test <- df_test[- as.numeric(which(apply(df_test, 2, var) == 0))]
+
+df_train$One[df_train$Digit == 1] <- 1
+df_train$One[df_train$Digit == 3] <- 0
+
+df_train <- subset(df_train, select = -c(Digit))
+
+# Pixel with best logistical model
+
+storage <- list()
+
+for(i in names(df_train[,-625])){
+  
+  classifier1 <- glm(paste("One ~", i), df_train, family = "binomial")
+  
+  predict1 <- predict(classifier1, data = df_train, type ="response")
+  
+  storage [[i]]<- auc(df_train$One, predict1)
+  
+}
+
+compare <- unlist(storage)
+sort(compare, decreasing = TRUE)
+```
+(a). Pixel 490 gives the best logistic model for this classification problem.
+
+```{r Extra46b}
+
+# Pixel with best logistical model
+
+storage2 <- list()
+
+for(i in names(df_train[,-625])){
+  
+  classifier2 <- glm(paste("One ~ V490 +", i), df_train, family = "binomial")
+  
+  predict2 <- predict(classifier2, data = df_train, type ="response")
+
+  storage2[[i]]<- auc(df_train$One, predict2)
+  
+}
+
+compare2 <- unlist(storage2)
+sort(compare2, decreasing = TRUE)
+
+```
+
+(b). V495 along with V490 has the highest AUC for our logistic model. 
+
+```{r Extra46c}
+
+classifier3 <- glm(One ~ V490, data = df_train, family = "binomial")
+predict3 <- predict(classifier3, data = df_test, type ="response")
+auc(df_train$One, predict3)
+
+classifier4 <- glm(One ~ V490 + V495, data = df_train, family = "binomial")
+predict4 <- predict(classifier4, data = df_test, type ="response")
+auc(df_train$One, predict4)
+
+```
+
+(c). The model with V490 and 495 performs better on the test data.
+
+(d). In total we have looked at 624 * 2 models just for our training data. In addition we also have looked at 2 models for our test data bringing our total to 1250.
+For 10 variables we would have to look at at least 624 * 10 = 6240 models for the training phase alone. This shows how computationally heavy best subset selection can be.

@@ -1,0 +1,298 @@
+---
+title: "ANLY512 Assignment 3"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+####**Extra Problem 28**
+
+![Working for this question](Q28.jpg)
+
+####**Extra Problem 30**
+
+From the graph it is clear that the probablity of the two ANNs correctly classifying the value are symmetrical around the baseline (i.e the 50% line). This means the overall performance for both is similar given our data.
+Given similar data input, both ANNs seem to either correctly or incorrectly classify in tandem i.e. if one correctly classifies so does the other and vice versa.
+As there performance is similar they would have similar ROC curves.
+
+####**Extra Problem 33**
+
+(a).
+
+```{r Q33a}
+
+library(dplyr)
+library(pROC)
+library(nnet)
+
+load("mnist_all.RData")
+
+df_train <- as.data.frame(train$x)
+df_train$Digit <- train$y
+
+df_train <- filter(df_train, (Digit == 4 | Digit == 7))
+
+df_train$Four[df_train$Digit == 4] <- 1
+df_train$Four[df_train$Digit == 7] <- 0
+
+trainx_colmean <- apply(df_train, 2, mean)
+trainx_colsd <- apply(df_train, 2, sd)
+
+# Use this code to create Correlation Matrix and choose a low correlation
+# table(trainx_colsd)
+df_train_corr <- df_train %>% select(which(trainx_colsd > 110))
+# cor(df_train_corr)
+
+sd(df_train_corr$V374)
+sd(df_train_corr$V576)
+cor(df_train_corr$V374, df_train_corr$V576)
+
+
+# We chose V374 and V576
+
+classifier1_train <- glm(Four ~ V374 + V576, data = df_train, family = "binomial")
+summary(classifier1_train)
+
+predict1_train <- predict(classifier1_train, data = df_train, type ="response")
+table(df_train$Digit, predict1_train > 0.5)
+
+#Produce ROC curve
+classifier1_train_roc <- roc(Four ~ predict1_train, data = df_train)
+plot(classifier1_train_roc)
+classifier1_train_roc[["auc"]]
+
+```
+
+(b).
+
+```{r Q33b}
+
+mnist_nnet1 <- nnet(Four ~ V374 + V576, data = df_train, size = 1, decay = 0.1)
+summary(mnist_nnet1)
+
+predict_nnet1 <- predict(mnist_nnet1, type = "raw")
+auc(df_train$Four , predict_nnet1)
+
+```
+
+(c).
+
+```{r Q33c}
+
+mnist_nnet2 <- nnet(Four ~ V374 + V576, data = df_train, size = 2, decay = 0.1)
+summary(mnist_nnet2)
+predict_nnet2 <- predict(mnist_nnet2, type = "raw")
+auc(df_train$Four , predict_nnet2)
+
+mnist_nnet3 <- nnet(Four ~ V374 + V576, data = df_train, size = 3, decay = 0.1)
+summary(mnist_nnet3)
+predict_nnet3 <- predict(mnist_nnet3, type = "raw")
+auc(df_train$Four , predict_nnet3)
+
+mnist_nnet4 <- nnet(Four ~ V374 + V576, data = df_train, size = 4, decay = 0.1)
+summary(mnist_nnet4)
+predict_nnet4 <- predict(mnist_nnet4, type = "raw")
+auc(df_train$Four , predict_nnet4)
+
+mnist_nnet5 <- nnet(Four ~ V374 + V576, data = df_train, size = 5, decay = 0.1)
+summary(mnist_nnet5)
+predict_nnet5 <- predict(mnist_nnet5, type = "raw")
+auc(df_train$Four , predict_nnet5)
+
+```
+
+(d).
+
+```{r Q33d}
+
+library(pROC)
+
+# Import test data
+
+df_test <- as.data.frame(test$x)
+df_test$Digit <- test$y
+
+df_test <- filter(df_test, (Digit == 4 | Digit == 7))
+
+df_test$Four[df_test$Digit == 4] <- 1
+df_test$Four[df_test$Digit == 7] <- 0
+
+predict_nnet1_test <- predict(mnist_nnet1, data = test_df)
+
+
+```
+
+
+####**Extra Problem 35**
+
+```{r Q35}
+
+library(nnet)
+library(pROC)
+
+set.seed(20309)
+
+create_data <- function(columns, n_rows){
+   replicate(columns, rnorm(n_rows)) 
+}
+
+q35_data <- as.data.frame(create_data(10, 100)) 
+q35_data$Z <- rbinom(100, 1, 0.5)
+
+q35_logistic <- glm(Z ~ ., data = q35_data, family = "binomial")
+summary(q35_logistic)
+
+q35_nnet2 <- nnet(Z ~ . , data = q35_data, size = 2, maxit = 2000, decay = 0.1)
+summary(q35_nnet2)
+predict_q35_nnet2 <- predict(q35_nnet2, type = "raw")
+q35_nnet2_roc <- roc(Z ~ predict_q35_nnet2, data = q35_data)
+plot(q35_nnet2_roc)
+auc(q35_data$Z , predict_q35_nnet2)
+
+q35_nnet5 <- nnet(Z ~ . , data = q35_data, size = 5, maxit = 2000, decay = 0.1)
+summary(q35_nnet5)
+predict_q35_nnet5 <- predict(q35_nnet5, type = "raw")
+q35_nnet5_roc <- roc(Z ~ predict_q35_nnet5, data = q35_data)
+plot(q35_nnet5_roc)
+auc(q35_data$Z , predict_q35_nnet5)
+
+q35_nnet10 <- nnet(Z ~ . , data = q35_data, size = 5, maxit = 2000, decay = 0.1)
+summary(q35_nnet10)
+predict_q35_nnet10 <- predict(q35_nnet10, type = "raw")
+q35_nnet10_roc <- roc(Z ~ predict_q35_nnet10, data = q35_data)
+plot(q35_nnet10_roc)
+auc(q35_data$Z , predict_q35_nnet10)
+
+```
+
+####**Extra Problem 34**
+
+```{r Q34}
+
+set.seed(20305)
+
+create_data <- function(columns, n_rows){
+   replicate(columns, rnorm(n_rows)) 
+}
+
+q34_data <- as.data.frame(create_data(11, 100))
+colnames(q34_data)[colnames(q34_data)=="V11"] <- "Z"
+
+q34_lm <- lm(Z ~ ., data = q34_data)
+summary(q34_lm)
+anova(q34_lm)
+
+q34_nnet <- nnet(Z ~. , data = q34_data, size = 2, maxit = 2000, decay = 0.01)
+summary(q34_nnet)
+predict1_q34 <- predict(q34_nnet, data = q34_data, type ="raw")
+
+q34_nnet5 <- nnet(Z ~. , data = q34_data, size = 5, maxit = 2000, decay = 0.01)
+summary(q34_nnet5)
+predict2_q34 <- predict(q34_nnet5, data = q34_data, type ="raw")
+
+q34_nnet10 <- nnet(Z ~. , data = q34_data, size = 10, maxit = 2000, decay = 0.01)
+summary(q34_nnet10)
+predict3_q34 <- predict(q34_nnet10, data = q34_data, type ="raw")
+
+```
+
+####**Extra Problem 36**
+
+```{r Q36, echo = FALSE}
+
+library(ggplot2)
+
+x =rnorm(50, 0 ,2)
+y<-rep(1,length(x))
+y[abs(x)<1] = 0
+plot(x,rep(0,length(x)),col=y+1)
+
+# Create df
+Q36_df <- as.data.frame(cbind(x,y))
+
+# Run logit
+q36_logit <- glm(y ~ x, data = Q36_df)
+summary(q36_logit)
+
+# Add in x^2
+Q36_df$x_sq <- (Q36_df$x^2)
+
+ggplot(Q36_df, aes(x = x, y =x^2, color = as.factor(y))) + geom_point() + scale_color_manual(values = c("red","blue"))
+
+# Run logit again
+q36_logit2 <- glm(y ~ x + x_sq, data = Q36_df)
+summary(q36_logit2)
+
+# Run Neural Network
+q36_nnet2 <- nnet(y~x, data = Q36_df, size = 2, decay = 0.01)
+summary(q36_nnet2)
+predict_q36_nnet2 <- predict(q36_nnet2, type = "raw")
+table(Q36_df$y, predict_q36_nnet2 > 0.5)
+
+```
+
+####**Extra Problem 37**
+
+You can also embed plots, for example:
+
+```{r Q37, echo=FALSE}
+
+library(readxl)
+library(nnet)
+library(randomForest)
+url <- "http://archive.ics.uci.edu/ml/machine-learning-databases/concrete/compressive/Concrete_Data.xls"
+destfile <- "Concrete_Data.xls"
+curl::curl_download(url, destfile)
+Concrete_Data <- read_excel(destfile)
+
+names(Concrete_Data) <- c("cement","slag","fly_ash","water","superp","coa_agg","fin_agg","age","strength")
+
+
+
+# Split into training and test data
+
+sample_size <- floor(0.7*nrow(Concrete_Data))
+set.seed(123)
+train_ind = sample(seq_len(nrow(Concrete_Data)),size = sample_size)
+
+Q37_train = Concrete_Data[train_ind,]
+Q37_test = Concrete_Data[-train_ind,]
+
+# Run ANNs
+
+nnet37_resid <- matrix(nrow = 721, ncol = 21)
+nnet37_resid2 <- matrix(nrow = 309, ncol = 21)
+
+for(sz in 2:20){
+  x <- nnet(strength ~., data = Q37_train, size = sz, decay = 0.1)
+  nnet37_resid[,(sz)] <- cbind(x$residuals)
+  y <- nnet(strength ~., data = Q37_test, size = sz, decay = 0.1)
+  nnet37_resid2[,(sz)] <- cbind(y$residuals)
+}
+
+# Drop empty column
+nnet37_resid <- nnet37_resid[,-1]
+nnet37_resid2 <- nnet37_resid2[,-1]
+
+residual_means <- data.frame("n" = 2:21)
+residual_means$resid_train <- apply(nnet37_resid, 2, mean)
+residual_means$resid_test <- apply(nnet37_resid2, 2, mean)
+
+ggplot(data = residual_means, aes(n, resid_train)) + geom_point() +
+  labs(Title = "Training Data", x = "Number of Hidden Layers", y = "RMSE")
+
+ggplot(data = residual_means, aes(n, resid_test)) + geom_point() +
+  labs(Title = "Test Data", x = "Number of Hidden Layers", y = "RMSE")
+
+ggplot(data = residual_means) + geom_point(aes(x = n, y = resid_train), color = "red") + 
+  geom_point(data = residual_means, aes(x = n, y = resid_test), color = "blue") +
+  labs(x = "Number of Hidden Layers", y = "RMSE") +
+  scale_y_continuous(limits=c(34.75, 35))
+
+
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
