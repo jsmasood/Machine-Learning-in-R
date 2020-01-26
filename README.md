@@ -14,4 +14,4 @@ Topics covered:
 
 Textbook:Gareth James, Daniela Witten, Trevor Hastie, Robert Tibshirani,An Introduction to StatisticalLearning with Applications in R. Springer 2013, corrected 6th printing 2015.  Softcover ISBN 978-1-4614-7137-0.  Available as free legal download at http://www-bcf.usc.edu/ gareth/ISL/
 
- The course will use statistical software (R) throughout.
+ The course used statistical software (R) throughout.
