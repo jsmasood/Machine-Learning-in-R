@@ -1,0 +1,217 @@
+---
+title: "ANLY512 Assignment 9"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+####**10.7.2**
+
+```{r}
+d <- as.dist(matrix(c(0, 0.3, 0.4, 0.7, 
+                     0.3, 0, 0.5, 0.8,
+                     0.4, 0.5, 0.0, 0.45,
+                     0.7, 0.8, 0.45, 0.0), nrow = 4))
+plot(hclust(d, method = "complete"))
+
+plot(hclust(d, method = "single"))
+
+```
+
+(c). The cut would result in clusters (1,2) and (3,4).
+
+(d). The cut would result in clusters (1,2,3) and (4).
+
+####**Extra Problem 67**
+
+
+```{r}
+
+library(mlbench)
+
+smiley1 <- mlbench.smiley(n=500, sd1 = 0.2, sd2 = 0.2)
+plot(smiley1)
+
+km.smiley1 <- kmeans(smiley1$x, 4 ,nstart=20)
+
+plot(smiley1$x, col=(km.smiley1$cluster +1), main="K-Means Clustering Results with K=4", xlab="", ylab="", pch=20, cex=2)
+
+table(true = smiley1$classes, predicted = km.smiley1$cluster)
+
+# b
+
+hc.complete <- hclust(dist(smiley1$x), method="complete")
+hc.average <- hclust(dist(smiley1$x), method="average")
+hc.single <- hclust(dist(smiley1$x), method="single")
+
+par(mfrow=c(1,3))
+
+plot(hc.complete,main="Complete Linkage", xlab="", sub="",
+cex =.9)
+
+plot(hc.average , main="Average Linkage", xlab="", sub="",
+cex =.9)
+
+plot(hc.single , main="Single Linkage", xlab="", sub="",
+cex =.9)
+
+cutree(hc.complete, 4)
+cutree(hc.average, 4)
+cutree(hc.single, 4)
+
+```
+
+The clustering is best using the 
+
+####**Extra Problem 72**
+
+
+```{r, echo=FALSE}
+
+library(readxl)
+url <- "http://archive.ics.uci.edu/ml/machine-learning-databases/concrete/compressive/Concrete_Data.xls"
+destfile <- "Concrete_Data.xls"
+curl::curl_download(url, destfile)
+Concrete_Data <- read_excel(destfile)
+
+names(Concrete_Data) <- c("cement","slag","fly_ash","water","superp","coa_agg","fin_agg","age","strength")
+
+train <- sample(nrow(Concrete_Data),(nrow(Concrete_Data) * .70), replace = FALSE)
+CD_train <- Concrete_Data[train,]
+CD_test <- Concrete_Data[-train,]
+
+apply(CD_train , 2, mean)
+
+# a
+
+CD_matrix <- model.matrix(strength~. -1, CD_train)
+pr.CD <- prcomp(CD_matrix, scale=TRUE)
+
+df_CDA.PCA <- data.frame(CD_train$strength, pr.CD$x)
+
+PCR_CD <- lm(CD_train.strength ~ PC1, data = df_CDA.PCA)
+summary(PCR_CD)
+
+# b
+
+pred_CD <- predict(pr.CD, newdata=CD_test)
+
+df_CDA.PCA_test <- data.frame(CD_test$strength, pred_CD)
+
+predict(PCR_CD, df_CDA.PCA_test)
+
+```
+
+####**10.7.9**
+
+```{r}
+
+data("USArrests")
+head(USArrests)
+
+hc.complete2 <- hclust(dist(USArrests), method="complete")
+
+plot(hc.complete2,main="Complete Linkage", xlab="", sub="",
+cex =.9)
+
+cutree(hc.complete2, 3)
+
+US_sc <- scale(USArrests)
+
+plot(hclust(dist(US_sc), method="complete"), main="Hierarchical Clustering with Scaled Features ")
+
+```
+
+(d). Clustering algorithms require some definition of distance, and if we do not scale and center our data, we may give attributes which have larger magnitudes more importance. When we scale the variables we get rid of this problem and give each variable equal weighting towards the dissimilarity measure. 
+
+####**Extra Problem 69**
+
+```{r}
+
+library(mlbench)
+
+# a
+
+smiley2 <- mlbench.smiley(n=500, sd1 = 0.02, sd2 = 0.02)
+plot(smiley2)
+
+km.smiley2 <- kmeans(smiley2$x, 4 ,nstart=20)
+
+plot(smiley2$x, col=(km.smiley2$cluster +1), main="K-Means Clustering Results with K=4", xlab="", ylab="", pch=20, cex=2)
+
+table(true = smiley2$classes, predicted = km.smiley2$cluster)
+
+
+smiley3 <- mlbench.smiley(n=500, sd1 = 0.002, sd2 = 0.002)
+plot(smiley3)
+
+km.smiley3 <- kmeans(smiley3$x, 4 ,nstart=20)
+
+plot(smiley3$x, col=(km.smiley3$cluster +1), main="K-Means Clustering Results with K=4", xlab="", ylab="", pch=20, cex=2)
+
+table(true = smiley3$classes, predicted = km.smiley3$cluster)
+
+
+smiley4 <- mlbench.smiley(n=500, sd1 = 0.0002, sd2 = 0.0002)
+plot(smiley4)
+
+km.smiley4 <- kmeans(smiley4$x, 4 ,nstart=20)
+
+plot(smiley4$x, col=(km.smiley4$cluster +1), main="K-Means Clustering Results with K=4 and SD = 0.0002", xlab="", ylab="", pch=20, cex=2)
+
+table(true = smiley4$classes, predicted = km.smiley4$cluster)
+
+# b
+
+smiley4 <- mlbench.smiley(n=500, sd1 = 0.05, sd2 = 0.05)
+plot(smiley2)
+
+km.smiley4 <- kmeans(smiley4$x, 4 ,nstart=20)
+
+plot(smiley4$x, col=(km.smiley4$cluster +1), main="K-Means Clustering Results with K=4 and SD = 0.05", xlab="", ylab="", pch=20, cex=2)
+
+table(true = smiley4$classes, predicted = km.smiley4$cluster)
+
+
+smiley5 <- mlbench.smiley(n=500, sd1 = 0.1, sd2 = 0.1)
+plot(smiley2)
+
+km.smiley5 <- kmeans(smiley4$x, 4 ,nstart=20)
+
+plot(smiley5$x, col=(km.smiley4$cluster +1), main="K-Means Clustering Results with K=4 and SD = 0.1", xlab="", ylab="", pch=20, cex=2)
+
+table(true = smiley5$classes, predicted = km.smiley5$cluster)
+
+```
+
+####**Extra Problem 71**
+
+```{r}
+
+library(dplyr)
+load("mnist_all.RData")
+
+df_train <- as.data.frame(train$x)
+df_train$Digit <- train$y
+
+df_test <- as.data.frame(test$x)
+df_test$Digit <- test$y
+
+km.digit <- kmeans(df_train$Digit, 2 ,nstart=50)
+
+plot(df_train$Digit, col=(km.digit$cluster +1), main="K-Means Clustering Results with K=2", xlab="", ylab="", pch=20, cex=2)
+
+table(true = df_train$Digit, predicted = km.digit$cluster)
+
+# b
+
+km.digit2 <- kmeans(df_train$Digit, 10 ,nstart=50)
+
+plot(df_train$Digit, col=(km.digit2$cluster +1), main="K-Means Clustering Results with K=10", xlab="", ylab="", pch=20, cex=2)
+
+table(true = df_train$Digit, predicted = km.digit2$cluster)
+
+```
+
