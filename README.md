@@ -1,6 +1,6 @@
 # ANLY512
 
-Statistical Learning class taken at Georgetown University Math Department
+Machine Learning class taken at Georgetown University Math Department
 
 Topics covered:
 
