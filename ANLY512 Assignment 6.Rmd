@@ -1,0 +1,236 @@
+---
+title: "ANLY512 Assignment 6"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+####**6.8.2**
+<br>
+
+Ans 2(a). For the Lasso regression, part (iii) is correct. It is less flexible and hence will give improved prediction accuracy when its increase in bias is less than its decrease in variance as compared to OLS. 
+
+This is because the shrinkage penalty introduces some bias and forces the coefficient values down to zero. This helps reduce variance and the overall MSE goes down as long as the increase in bias is not greater than the decrease is variance we achieve.
+
+(b). For the Ridge Regression, part (iii) is correct again. This is because both Ridge Regression and Lasso operate on the same basic principle but use a different shrinkage function. The Ridge Regression is usually more effect when the number of predictors with a zero value are few, whereas the LASSO is more effective when the number of predictors with no effect on the outcome are greater.
+
+####**6.8.4**
+<br>
+
+Ans 4(a). As we increase the λ value from 0 the model complexity will reduce. This is because the coefficients will be  shrunk towards zero. For our training data, this will cause the RSS will increase, because the more complex our model the smaller the residuals. We apply Ridge Regression to reduce the problem of overfitting with test data.
+
+(b). As we increase the λ value from 0 the model complexity will reduce. This will cause the test data RSS to initially decrease and then increase in the form of a u-shape. This is because initially we will be addressing the problem of overfitting by increasing the bias and reducing the variance. However as λ gets really large the decrease in variance will be offset by a much larger increase in bias. Thus the RSS will start to increase when our model is used to make predictions on independant data.
+
+(c). As we increase the λ value from 0 the model variance will decrease as we will increase the bias by shrinking coefficients to zero. Evantually we can shrink all coefficients and make them really small which will result in a model with very tiny variance but a large bias.
+
+####**6.8.9**
+<br>
+
+```{r}
+
+library(ISLR)
+library(glmnet)
+data(College)
+head(College)
+
+# (a)
+
+College_x <- model.matrix(Apps ~ ., College)[,-1] 
+College_y <- College$Apps
+
+set.seed (1)
+train <- sample(1:nrow(College_x), nrow(College_x)/2)
+test <- (-train)
+College_y.test <- College_y[test]
+
+# b
+
+train1 <- sample(777,370)
+College.lm <- lm(Apps ~ .,data=College ,subset=train1)
+
+attach(College)
+mean((Apps - predict(College.lm, College))[-train1]^2)
+
+# c
+
+ridge.College <- glmnet(College_x,College_y, alpha=0)
+
+set.seed (1)
+cv.College <- cv.glmnet(College_x[train ,],College_y[train],alpha=0)
+plot(cv.College)
+cv.College$lambda.min
+cv.College$lambda.1se
+
+pred.ridge.College <- predict(ridge.College, s = cv.College$lambda.1se ,newx = College_x[test,])
+mean((pred.ridge.College-College_y.test)^2)
+
+# d
+
+lasso.College <- glmnet(College_x[train ,], College_y[train],alpha=1)
+plot(lasso.College, label = TRUE)
+
+set.seed (1)
+cv.College2 <- cv.glmnet(College_x[train ,], College_y[train],alpha=1)
+plot(cv.College2)
+cv.College2$lambda.1se
+lam1se <- cv.College2$lambda.1se
+
+College_lasso.pred <- predict(lasso.College, s=lam1se ,newx=College_x[test,])
+mean((College_lasso.pred-College_y.test)^2)
+
+# e
+
+library(pls)
+set.seed(2)
+
+pcr.College <- pcr(Apps ~ ., data=College ,scale=TRUE, validation ="CV")
+summary(pcr.College)
+validationplot(pcr.College,val.type="MSEP")
+
+pcrCollege.pred=predict(pcr.College,College[test,],ncomp=16)
+mean((pcrCollege.pred-College_y.test)^2)
+
+# f
+
+set.seed(2)
+pls.College <- plsr(Apps ~ ., data=College ,subset=train1,scale=TRUE,validation ="CV")
+summary(pls.College)
+
+validationplot(pls.College,val.type="MSEP")
+
+plsCollege.pred <- predict(pls.College, College[test,], ncomp=8)
+mean((plsCollege.pred-College_y.test)^2)
+
+```
+
+Ans 9(b). Test MSE using linear model = 1672645.
+
+(c). Test MSE using Ridge Regression = 15116025.
+
+(d). Test MSE using Lasso Regression = 1384902.
+
+(e). Test MSE using PCR = 1025688.
+
+(f). Test MSE using PLS = 998462.9.
+
+(g). There is significant different in the test error from each of the different approaches. Although it is difficult to predict college applications well and we see the MSE is generally large, it is the smallst for PSL and largest using a linear regression.
+
+
+
+####**Extra Problem 49**
+<br>
+
+```{r}
+
+library(leaps)
+library(MASS)
+data(Boston)
+head(Boston)
+
+# a
+
+Boston_x <- model.matrix(medv ~ ., Boston)[,-1] 
+Boston_y <- Boston$medv
+
+set.seed (1)
+train <- sample(1:nrow(Boston_x), nrow(Boston_x)/2)
+test <- (-train)
+Boston_y.test <- Boston_y[test]
+
+lasso.Boston <- glmnet(Boston_x[train ,], Boston_y[train],alpha=1)
+plot(lasso.Boston, label=TRUE)
+
+# b
+
+set.seed (1)
+cv.Boston <- cv.glmnet(Boston_x[train ,],Boston_y[train],alpha=1)
+plot(cv.Boston)
+cv.Boston$lambda.1se
+lam1se <- cv.Boston$lambda.1se
+Boston_lasso.pred <- predict(lasso.Boston,s=lam1se ,newx=Boston_x[test,])
+mean((Boston_lasso.pred-Boston_y.test)^2)
+
+# c
+
+scaled.Boston <- as.data.frame(scale(Boston))
+
+scaled.Boston_x <- model.matrix(medv ~ ., scaled.Boston)[,-1] 
+scaled.Boston_y <- scaled.Boston$medv
+
+set.seed (1)
+train <- sample(1:nrow(scaled.Boston_x), nrow(scaled.Boston_x)/2)
+test <- (-train)
+scaled.Boston_y.test <- scaled.Boston_y[test]
+
+lasso.scaled.Boston <- glmnet(scaled.Boston_x[train ,], scaled.Boston_y[train],alpha=1)
+plot(lasso.scaled.Boston, label = TRUE)
+
+# d
+
+set.seed (1)
+cv.scaled.Boston <- cv.glmnet(scaled.Boston_x[train ,],scaled.Boston_y[train],alpha=1)
+plot(cv.scaled.Boston)
+cv.scaled.Boston$lambda.min
+lam1se <- cv.scaled.Boston$lambda.1se
+scaled.Boston_lasso.pred <- predict(lasso.scaled.Boston,s=lam1se ,newx=Boston_x[test,])
+mean((scaled.Boston_lasso.pred-scaled.Boston_y.test)^2)
+
+```
+
+(a). The last 5 variables to remain in the model are the ones which stay non-zero even for low values of L1 norm i.e. when the shrinkage parametere is high.
+
+There are variables 13, 11, 4, 6 and 8.
+
+(b). Lambda 1se = 0.4251261 and the RMS = 28.144
+
+(c). There are variables 13, 6, 11, 4 and 12. These are different from our parts in (a) which indicates that standardizing our variables was neccessary.
+
+(d). Lambda 1se = 0.00162301 and the RMS = 90.14
+
+
+
+####**Extra Problem 50**
+<br>
+
+```{r}
+
+load("diabetes.Rdata")
+head(diabetes)
+library(glmnet)
+
+sum(is.na(diabetes$x))
+sum(is.na(diabetes$y))
+sum(is.na(diabetes$x2))
+
+df_x2 <- as.data.frame(diabetes$x2)
+df_x2$y <- diabetes$y
+
+diab_x1 <- model.matrix(y ~ ., diabetes)[,-1] 
+diab_y1 <- df_x2$y
+
+ridge.mod1 <- glmnet(diab_x1,diab_y1, alpha=0)
+dim(coef(ridge.mod1))
+
+set.seed (1)
+train <- sample(1:nrow(diab_x1), nrow(diab_x1)/2)
+test <- (-train)
+diab_y1.test <- diab_y1[test]
+
+set.seed (1)
+cv.diabetes <- cv.glmnet(diab_x1[train ,],diab_y1[train],alpha=0)
+plot(cv.diabetes)
+cv.diabetes$lambda.min
+cv.diabetes$lambda.1se
+
+ridge.pred <- predict(ridge.mod1,s = cv.diabetes$lambda.1se ,newx = diab_x1[test,])
+mean((ridge.pred-diab_y1.test)^2)
+
+
+```
+
+The best lambda is 15.59888. 
+
+The lambda.1se is 91.36295.
+The test error for this model is 3004.577.

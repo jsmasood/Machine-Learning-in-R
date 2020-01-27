@@ -1,0 +1,297 @@
+---
+title: "ANLY512 Assignment 8"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+####**9.7.3**
+
+(a). ![Sketch](9.7.3.png)
+
+(b). Equation for Hyperplane = -0.5 + X1 - X2 = 0 where beta 1 is equal to 1, beta 2 is equal to -1 and beta 0 = -0.5
+
+(c). Classify to Red if -0.5 + X1 - X2 > 0
+     Classify to Blue if -0.5 + X1 - X2 < 0
+
+(d). ![Maximal Margins](d.png)
+
+(e). The support vectors are the blue points (2,1) and (4,3) as well as the red points (2,2) and (4,4).
+
+(f). The seventh observation is not a support vector but rather is one of the values with a large distance from the hyperplane. Thus changing its position slightly should not affect the hyperplane. In order for this point to have an effect it must be at least as close as the support vector points.
+
+(g). ![Non optimal hyperplane](g.png)
+
+(h). ![Inseperable by hyperplane](h.png)
+
+####**9.7.7**
+
+
+```{r}
+
+library(e1071)
+library(ISLR)
+
+data(Auto)
+head(Auto)
+
+median(Auto$mpg)
+
+# a
+
+Auto$mileage <- ifelse(Auto$mpg >= 22.75,1,0)
+Auto$mileage <- ifelse(Auto$mpg < 22.75,0,1)
+
+# b
+
+Auto$mileage <- as.factor(Auto$mileage)
+
+# svm_Auto <- svm(y~., data = Auto, kernel="linear", cost=10, scale=FALSE)
+Auto$mpg <- NULL
+
+tune_Auto <- tune(svm, mileage ~ ., data = Auto, kernel = "linear", ranges=list(cost=c(0.001, 0.01, 0.1, 1,5,10,100)))
+
+summary(tune_Auto)
+
+# c & d
+
+tune_Auto_poly <- tune.svm(mileage ~ ., data = Auto, kernel = "polynomial", degree = 10^(-3:2), cost=10^(-4:4))
+summary(tune_Auto_poly)
+
+Auto_poly_fit <- svm(mileage ~ ., data = Auto, kernel = "polynomial", degree = 1, cost=10)
+plot(Auto_poly_fit, Auto, weight ~ cylinders)
+
+
+
+tune_Auto_rad <- tune.svm(mileage ~ ., data = Auto, kernel = "radial", gamma = 10^(-3:2), cost=10^(-4:4))
+summary(tune_Auto_rad)
+
+Auto_rad_fit <- svm(mileage ~ ., data = Auto, kernel = "radial", gamma = 0.1, cost=10)
+plot(Auto_rad_fit, Auto, weight ~ cylinders)
+
+```
+
+####**9.7.8**
+
+```{r}
+
+library(ISLR)
+data(OJ)
+head(OJ)
+
+set.seed(1)
+train <- sample(1070,800)
+
+svm_OJ <- svm(Purchase ~ ., data = OJ[train,], kernel="linear", cost=0.01, scale = FALSE)
+summary(svm_OJ)
+# plot(svm_OJ, OJ[train,], PriceCH ~ PriceMM)
+
+# c
+
+ypred_train <- predict(svm_OJ, OJ[train,])
+table(true = OJ[train, "Purchase"], predicted = ypred_train)
+
+ypred_test <- predict(svm_OJ, OJ[-train,])
+table(true = OJ[-train, "Purchase"], predicted = ypred_test)
+
+# d
+
+tune_OJ <- tune(svm, Purchase ~ ., data = OJ[train,], kernel = "linear", ranges=list(cost=c(0.01, 0.1, 1,5,10)))
+summary(tune_OJ)
+
+# e
+
+OJpred_train <- predict(tune_OJ$best.model, OJ[train,])
+table(true = OJ[train, "Purchase"], predicted = OJpred_train)
+
+OJpred_test <- predict(tune_OJ$best.model, OJ[-train,])
+table(true = OJ[-train, "Purchase"], predicted = OJpred_test)
+
+# f
+
+tune_OJ_rad <- tune(svm, Purchase ~ ., data = OJ[train,], kernel = "radial", ranges=list(cost=c(0.01, 0.1, 1,5,10)))
+summary(tune_OJ_rad)
+
+OJpred_train_rad <- predict(tune_OJ_rad$best.model, OJ[train,])
+table(true = OJ[train, "Purchase"], predicted = OJpred_train_rad)
+
+OJpred_test_rad <- predict(tune_OJ_rad$best.model, OJ[-train,])
+table(true = OJ[-train, "Purchase"], predicted = OJpred_test_rad)
+
+# g
+
+tune_OJ_poly <- tune(svm, Purchase ~ ., data = OJ[train,], kernel = "polynomial", degree = 2,  ranges=list(cost=c(0.01, 0.1, 1,5,10)))
+summary(tune_OJ_poly)
+
+OJpred_train_poly <- predict(tune_OJ_poly$best.model, OJ[train,])
+table(true = OJ[train, "Purchase"], predicted = OJpred_train_poly)
+
+OJpred_test_poly <- predict(tune_OJ_poly$best.model, OJ[-train,])
+table(true = OJ[-train, "Purchase"], predicted = OJpred_test_poly)
+
+```
+
+
+####**Extra Problem 63**
+
+```{r}
+
+library(mlbench)
+library(ROCR)
+library(pROC)
+data(BreastCancer)
+head(BreastCancer)
+
+set.seed(1)
+train <- sample(699,450)
+
+BreastCancer$Class <- as.factor(BreastCancer$Class)
+BreastCancer$Id <- NULL
+
+BC_train <- BreastCancer[train,]
+BC_test <-BreastCancer[-train,]
+
+# Training Data
+
+Class_Logit <- glm(Class ~ ., data = BreastCancer[train,], family = binomial, maxit = 50)
+# summary(Class_Logit)
+
+BC_train$predict <- predict(Class_Logit, BreastCancer[train,], type ="response")
+
+#Produce ROC curve
+predict_Class_roc <- roc(as.numeric(BC_train$Class), BC_train$predict )
+plot(predict_Class_roc, Main = "Logit Training Data")
+predict_Class_roc[["auc"]]
+
+# Test data
+
+BC_test$predict <- predict(Class_Logit, newdata = BreastCancer[-train,], type = "response")
+predict_Class_roc2 <- roc(as.numeric(BC_test$Class), BC_test$predict )
+plot(predict_Class_roc2, Main = "Logit Test Data")
+predict_Class_roc2[["auc"]]
+
+# b
+
+rocplot <- function(pred, truth, ...){
+  predob = prediction(pred, truth)
+  perf = performance(predob , "tpr", "fpr")
+  plot(perf ,...)
+}
+
+tune_BC <- tune(svm, Class ~ ., data = BreastCancer[train,], kernel = "linear", ranges=list(cost=c(0.01, 0.1, 1,5,10)))
+summary(tune_BC)
+
+svmfit_BC <- svm(Class~., BC_train, kernel="linear", cost=0.01, scale = FALSE)
+BC_train$predict <- attributes(predict(svmfit_BC, BC_train, na.action = na.exclude,decision.values=TRUE))$decision.values
+
+#Produce ROC curve
+predict_Class_roc <- roc(as.numeric(BC_train$Class), BC_train$predict )
+plot(predict_Class_roc, main = "SVM Linear Training Data")
+predict_Class_roc[["auc"]]
+
+# Test Data
+
+BC_test$predict <- attributes(predict(svmfit_BC, BC_test, na.action = na.exclude,decision.values=TRUE))$decision.values
+
+#Produce ROC curve
+predict_Class_roc <- roc(as.numeric(BC_test$Class), BC_test$predict )
+plot(predict_Class_roc, main = "SVM Linear Test Data")
+predict_Class_roc[["auc"]]
+
+# par(mfrow=c(1,2))
+# rocplot( ,BreastCancer[-train ,"Class"])
+
+# c
+
+tune_BC2 <- tune(svm, Class ~ ., data = BC_train, kernel = "radial", cost = 0.01, ranges=list(degree=c(0.01, 0.1, 1,5,10)))
+summary(tune_BC2)
+
+# Training Data
+
+svmfit_BC2 <- svm(Class~., BC_test, kernel="radial", cost=0.01, degree = 0.01, scale = FALSE)
+BC_train$predict <- attributes(predict(svmfit_BC2, BC_train,decision.values=TRUE, na.action = na.exclude))$decision.values
+
+#Produce ROC curve
+predict_Class_roc <- roc(as.numeric(BC_train$Class), BC_train$predict )
+plot(predict_Class_roc, main = "SVM Linear Training Data")
+predict_Class_roc[["auc"]]
+
+# Test Data
+
+BC_test$predict <- attributes(predict(svmfit_BC2, BC_test, na.action = na.exclude,decision.values=TRUE))$decision.values
+
+#Produce ROC curve
+predict_Class_roc <- roc(as.numeric(BC_test$Class), BC_test$predict )
+plot(predict_Class_roc, main = "SVM Linear Test Data")
+predict_Class_roc[["auc"]]
+
+# par(mfrow=c(1,2))
+# rocplot(fitted1 ,BreastCancer[-train ,"Class"])
+
+```
+
+In order to decide between the best method, we must compare the test error rates. The training error rates are low for all threee methods, with each achieving perfect prediction. However, we know this is not always a good thing as it may be indicative of overfitting. 
+
+We see the test error rate is lowest for the SVM with polynomial degrees and then for logistic regression. In fact the test error rate for both is comparable. However if we use a support vector classifier it does not perform as well as it tries to create a linear seperation boundary which leads to a poorer test error rate.
+
+####**Extra Problem 66**
+
+```{r}
+
+library(dplyr)
+library(e1071)
+library(randomForest)
+load("mnist_all.RData")
+
+df_train <- as.data.frame(train$x)
+df_train$Digit <- train$y
+
+df_test <- as.data.frame(test$x)
+df_test$Digit <- test$y
+
+df_train <- filter(df_train, (Digit == 3 | Digit == 8))
+
+df_test <- filter(df_train, (Digit == 3 | Digit == 8))
+
+# trainx_colsd <- apply(df_train, 2, sd)
+
+# Remove columnns with zero variance
+df_train <- df_train[- as.numeric(which(apply(df_train, 2, var) == 0))]
+df_test <- df_test[- as.numeric(which(apply(df_test, 2, var) == 0))]
+
+attach(df_train)
+Three_train <- ifelse(Digit == 3,"Yes","No")
+df_train <- data.frame(df_train ,Three_train)
+
+attach(df_test)
+Three_test <- ifelse(df_train$Digit == 3,"Yes","No")
+df_test <- data.frame(df_train ,Three_test)
+
+df_train$Digit <- NULL
+df_test$Digit <- NULL
+
+# Training error
+
+randForest.Three <- randomForest(Three_train ~ ., data = df_train, mtry=200, ntree=28)
+randForest.Three
+
+# Test error
+
+yhat.randF = predict(randForest.Three ,newdata = df_test)
+table(yhat.randF ,Three_test)
+
+# b
+
+#tune_Three_rad <- tune.svm(Three_train ~ ., data = df_train, kernel = "radial", gamma = 10^(-3:2), cost=10^(-4:4), scale = FALSE)
+#summary(tune_Three_rad)
+
+#svm_Three_rad <- svm(Three_train ~ ., data = df_train, cost=10, scale=FALSE)
+
+
+```
+
+(c). I tried running the SVM but my computer kept crashing and couldn't complete the calculations. I have commented out the code which should work on a more powerful machine.
+
+After creating the confusion matrices for both Random Forests and SVM on the test data I would compare the error rates. The better method is the one with a lower test error rate.

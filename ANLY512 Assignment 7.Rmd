@@ -1,0 +1,334 @@
+---
+title: "ANLY512 Assignment 7"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+####**8.4.2**
+
+![Working for this question](IMG_6550.jpg)
+
+####**8.4.7**
+<br>
+
+```{r}
+
+library(MASS)
+library(randomForest)
+
+data("Boston")
+head(Boston)
+
+set.seed(1)
+
+train = sample(1:nrow(Boston), nrow(Boston)/2)
+boston.test=Boston[-train ,"medv"]
+
+# m = p
+
+bag.boston=randomForest(medv~.,data=Boston,subset=train, mtry=13,importance =TRUE)
+bag.boston
+
+yhat.bag = predict(bag.boston ,newdata=Boston[-train ,])
+mean((yhat.bag-boston.test)^2)
+
+# m = p/2
+
+bag.boston2=randomForest(medv~.,data=Boston,subset=train, mtry=7,importance =TRUE)
+bag.boston2
+
+yhat.bag2 = predict(bag.boston2 ,newdata=Boston[-train ,])
+mean((yhat.bag2-boston.test)^2)
+
+# m = sqrt(p)
+
+bag.boston3=randomForest(medv~.,data=Boston,subset=train, mtry=4,importance =TRUE)
+bag.boston3
+
+yhat.bag3 = predict(bag.boston3 ,newdata=Boston[-train ,])
+mean((yhat.bag3-boston.test)^2)
+
+# Ntrees
+
+test_MSE <- vector(mode="numeric", length=0)
+
+for(n in 1:10) {
+  
+  bag.boston4=randomForest(medv~.,data=Boston,subset=train, mtry=4, ntree = (n*100),importance =TRUE)
+  bag.boston4
+
+  yhat.bag4 = predict(bag.boston4 ,newdata=Boston[-train ,])
+  test_MSE[n] <- mean((yhat.bag4-boston.test)^2)
+}
+
+test_MSE
+
+```
+
+We get the following test MSE scores for different number of predictors
+
+4 predictors = 11.49215
+7 predictors = 11.62828
+13 predictors = 13.15977 (full model i.e. bagging)
+
+We see the test MSE increases significantly if we go from m = p to m = p/2, but there is not a huge difference when changing to m = sqrt(p). This is likely as our total number of predictors is small, just 13.
+
+However varying the number of trees does not have as big of a difference on the final MSE value.
+
+####**8.4.9**
+<br>
+
+```{r}
+
+library(ISLR)
+library(tree)
+data(OJ)
+head(OJ)
+
+set.seed(2)
+train <- sample(1:nrow(OJ), 80)
+OJ.test <- OJ[-train,]
+
+attach(OJ)
+MM <- ifelse(Purchase == "MM",1,0)
+
+tree.OJ <- tree(Purchase ~ ., data = OJ, subset = train)
+summary(tree.OJ)
+
+# c
+
+tree.OJ
+
+# d
+
+plot(tree.OJ)
+text(tree.OJ ,pretty =0)
+
+# e
+
+MM.test <- MM[-train]
+tree.OJ.pred <- predict(tree.OJ, OJ.test, type="class")
+table(tree.OJ.pred , MM.test)
+
+# f
+
+cv.OJ <- cv.tree(tree.OJ ,FUN=prune.misclass )
+names(cv.OJ)
+cv.OJ
+
+# g
+
+par(mfrow=c(1,2))
+plot(cv.OJ$size ,cv.OJ$dev ,type="b")
+plot(cv.OJ$k ,cv.OJ$dev ,type="b")
+
+# i
+
+prune.OJ <- prune.misclass(tree.OJ,best=5)
+plot(prune.OJ)
+text(prune.OJ,pretty=0)
+
+# j
+
+summary(tree.OJ)
+summary(prune.OJ)
+
+# k
+
+tree.OJ.pred2 <- predict(prune.OJ,OJ.test,type="class")
+table(tree.OJ.pred2 , MM.test)
+
+```
+
+(b). The tree has 8 terminal nodes and a traing error rate of 10.0%.
+
+(c). For the third node we see that we check if the value of LoyalCH is greater than 0.70. There are 28 such observations. For these values the tree predicts CH as the juice of choice with no deviance.
+
+(d). The root node of our OJ decision tree checks the value of Customer Brand Loyalty for Citrus Hill. It partitions this at 0.70 and splits the decision tree into two. If a persons brand loyalty is greater than this value they will always get CH juice.
+
+For a value smaller than 0.70 CH Loyalty it checks the discount on Minute Maid juice we check the loyalty again. If this is less than 0.06 the person buys MM juice.
+
+If the CH loyal value is greater than 0.06 we check the week of purchase and so on.
+
+(e). The test error rate = (65 + 164) / 1070 = 21.4%
+
+(f). The tree with 9 nodes has the lowest cv error of 19.
+
+(h). The lowest dev error is for a tree of size 9.
+
+(j). Training error rate is 10% for the original tree and 15% for the pruned tree.
+
+(h). Test error rate is 21.4% for the original tree and 23% for the pruned tree.
+
+(Test error should be lower for pruned tree but my sample changed after I ran the commands again. Earlier it was 16% for pruned test error)
+
+####**Extra Problem 59**
+<br>
+
+```{r}
+
+library(dplyr)
+library(randomForest)
+
+
+load("mnist_all.RData")
+
+df_train <- as.data.frame(train$x)
+df_train$Digit <- train$y
+
+df_test <- as.data.frame(test$x)
+df_test$Digit <- test$y
+
+df_train <- filter(df_train, (Digit == 4 | Digit == 5))
+
+df_test <- filter(df_train, (Digit == 4 | Digit == 5))
+
+# df_train$Four<= ifelse(df_test$Digit == 4,"Yes","No")
+# df_train$Four<= ifelse(df_test$Digit == 4,"Yes","No")
+
+attach(df_train)
+Four_train <- ifelse(Digit == 4,"Yes","No")
+df_train <- data.frame(df_train ,Four_train)
+
+attach(df_test)
+Four_test <- ifelse(df_train$Digit == 4,"Yes","No")
+df_test <- data.frame(df_train ,Four_test)
+
+# df_train$Digit <- NULL
+# df_test$Digit <- NULL
+
+# a
+
+tree.Four <- tree(Four_train ~ .-Digit, data = df_train)
+summary(tree.Four)
+
+tree.Four.pred <- predict(tree.Four, df_test ,type="class")
+table(tree.Four.pred ,Four_test)
+
+# b
+
+randForest.Four <- randomForest(Four_train ~ .-Digit, data = df_train, mtry=200, ntree=28)
+yhat.randF = predict(randForest.Four ,newdata = df_test)
+table(yhat.randF ,Four_test)
+
+# c
+
+bag.Four <- randomForest(Four_train ~ .-Digit, data = df_train, mtry=784, ntree=28)
+yhat.bagFour = predict(bag.Four ,newdata = df_test)
+table(yhat.bagFour ,Four_test)
+
+
+
+```
+
+(d). We see the test error rate is higher with a single classifcation tree (about) but the random Forest using 28 trees and m = 200 gets no test error. Similarly the bagging approach has only 2 misclassifications among 11263 observations.
+
+This shows how bagging and miscalissifaction significantly improves the predictive power of our model on new data.
+
+####**Extra Problem 61**
+<br>
+
+```{r}
+
+library(readxl)
+library(nnet)
+library(randomForest)
+url <- "http://archive.ics.uci.edu/ml/machine-learning-databases/concrete/compressive/Concrete_Data.xls"
+destfile <- "Concrete_Data.xls"
+curl::curl_download(url, destfile)
+Concrete_Data <- read_excel(destfile)
+
+names(Concrete_Data) <- c("cement","slag","fly_ash","water","superp","coa_agg","fin_agg","age","strength")
+
+train <- sample(1:nrow(Concrete_Data), nrow(Concrete_Data)/2)
+Concrete_test <- Concrete_Data[-train ,"medv"]
+
+set.seed (1)
+bag.Concrete <- randomForest(strength~., data=Concrete_Data, mtry=8,importance =TRUE)
+bag.Concrete
+
+# yhat.Concrete <- predict(bag.Concrete ,newdata=Concrete_Data[-train ,])
+
+# rf.Concrete <- 
+
+# mean((yhat.bag2-boston.test)^2)  
+  
+plot(bag.Concrete)
+
+
+```
+
+
+####**Extra Problem 62**
+<br>
+
+```{r}
+
+
+# Split into training and test data
+
+sample_size <- floor(0.7*nrow(Concrete_Data))
+set.seed(123)
+train_ind = sample(seq_len(nrow(Concrete_Data)),size = sample_size)
+
+Concrete_train <- Concrete_Data[train_ind,]
+Concrete_test <- Concrete_Data[-train_ind,]
+
+# set.seed (1)
+# bag.Concrete2 <- randomForest(strength~., data=Concrete_train, mtry=8,importance =TRUE)
+# bag.Concrete2
+# 
+# plot(bag.Concrete2)
+# 
+# yhat.bag.Concrete2 <- predict(bag.Concrete2 ,newdata=Concrete_test)
+# 
+# abline(0,1)
+# mean((yhat.bag.Concrete2-Concrete_test)^2)
+
+library(gbm)
+set.seed (1)
+
+Test_MSE <- vector(mode="numeric", length=0)
+Test_MSE2 <- vector(mode="numeric", length=0)
+Test_MSE3 <- vector(mode="numeric", length=0)
+
+#Train_error <- vector(mode="numeric", length=0)
+#Train_error2 <- vector(mode="numeric", length=0)
+#Train_error3 <- vector(mode="numeric", length=0)
+
+for(n in 1:10) {
+  boost.Concrete1 <- gbm(strength~., data=Concrete_train, distribution="gaussian", n.trees= (n*2000), interaction.depth=2, shrinkage = 0.001)
+  yhat.boost.Concrete1 <- predict(boost.Concrete1,newdata=Concrete_train, n.trees= (n*2000))
+  #Train_error[n] <- boost.Concrete1$train.error
+  Test_MSE[n] <- mean((yhat.boost.Concrete1 -Concrete_test)^2)
+}
+
+
+Test_MSE
+
+for(n in 1:10) {
+  boost.Concrete2 <- gbm(strength~., data=Concrete_train, distribution="gaussian", n.trees= 5000, interaction.depth=n, shrinkage = 0.001)
+  yhat.boost.Concrete2 <- predict(boost.Concrete2,newdata=Concrete_train, n.trees= 5000)
+  #Train_error2[n] <- boost.Concrete2$train.error
+  Test_MSE2[n] <- mean((yhat.boost.Concrete2 -Concrete_test)^2)
+}
+
+
+Test_MSE2
+
+for(n in 1:5) {
+  boost.Concrete3 <- gbm(strength~., data=Concrete_train, distribution="gaussian", n.trees= 5000, interaction.depth=2, shrinkage = 0.1^n)
+  yhat.boost.Concrete3 <- predict(boost.Concrete3,newdata=Concrete_train, n.trees= 5000)
+  #Train_error3[n] <- boost.Concrete3$train.error
+  Test_MSE3[n] <- mean((yhat.boost.Concrete3 -Concrete_test)^2)
+}
+
+
+Test_MSE3
+
+```
+
+From the above results we can see that inclreasing the number of trees or interaction depth by ten times does not lead to a decrease in the test error. Although the model fits the training error better and improves that it does not improve test error indicating overfitting.
